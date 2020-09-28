@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-from django.shortcuts import render
-
-# Create your views here.
-=======
 # import json
 from django.core import serializers
 from django.http import HttpResponse
