@@ -42,6 +42,21 @@ class WriteRoomSerializer(serializers.Serializer):
         print(validated_data)
         return Room.objects.create(**validated_data)
 
+    def validate(self, data):
+        check_in = data.get("check_in")
+        check_out = data.get("check_out")
+        if check_in == check_out:
+            raise serializers.ValidationError("Not enough time between changes")
+        else:
+            return data
+
+    # # Django에서의 clean과 비슷함
+    # def validate_beds(self, beds):
+    #     if beds < 5:
+    #         raise serializers.ValidationError("Your house is too small")
+    #     else:
+    #         return beds
+
 
 # class BigRoomSerializer(serializers.ModelSerializer):
 #     class Meta:
