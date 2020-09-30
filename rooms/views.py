@@ -143,6 +143,8 @@ def room_search(request):
     beds = request.GET.get("beds", None)
     bedrooms = request.GET.get("bedrooms", None)
     bathrooms = request.GET.get("bathrooms", None)
+    lat = request.GET.get("lat", None)
+    lng = request.GET.get("lng", None)
 
     filter_kwargs = {}
     if max_price is not None:
@@ -155,6 +157,12 @@ def room_search(request):
         filter_kwargs["bedrooms__gte"] = bedrooms
     if bathrooms is not None:
         filter_kwargs["bathrooms__gte"] = bathrooms
+    if lat is not None and lng is not None:
+        filter_kwargs["lat__gte"] = float(lat) - 0.005
+        filter_kwargs["lat__lte"] = float(lat) + 0.005
+        filter_kwargs["lng__gte"] = float(lng) - 0.005
+        filter_kwargs["lng__lte"] = float(lng) + 0.005
+
     # {'price__lte': '30', 'bathrooms__gte': '2'}
     print(filter_kwargs)
     # price__lte bathrooms__gte
