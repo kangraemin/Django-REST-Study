@@ -15,7 +15,10 @@ from .models import Room
 
 class RoomSerializer(serializers.ModelSerializer):
 
-    user = RelatedUserSerializer()
+    # Create room 할때는 user를 생성 할 필요는 없음
+    # 그런데 이렇게 설정하면, room을 create 할때 user가 없어서 create 할 수 없음
+    # 따라서 model serializer의 save()를 override해서 사용 할거임
+    user = RelatedUserSerializer(read_only=True)
     # https://www.django-rest-framework.org/api-guide/fields/#serializermethodfield
     # dynamic fields
     am_i_sexy = serializers.SerializerMethodField()
@@ -44,6 +47,18 @@ class RoomSerializer(serializers.ModelSerializer):
         if check_in == check_out:
             raise serializers.ValidationError("Not enough time between changes")
         return data
+
+    # How do I gives user to this serializer ?
+    # Use context !
+    # How do I gives context to this serializer ?
+    # Already sending by DRF ! ( http://www.cdrf.co/3.9/rest_framework.viewsets/ModelViewSet.html#get_serializer_context )
+    def create(self, validated_data):
+        # print(self.context.get("request").user)
+        # room = Room.objects.create(**validated_data)
+        # return room
+        request = self.context.get("request")
+        room = Room.objects.create(**validated_data, user=request.user)
+        return room
 
     # naming must be get_fields_name
     # or, add method name parameter to SerializerMethodField(method_name=원하는이름)

@@ -22,6 +22,7 @@ from rest_framework.viewsets import ModelViewSet
 # ModelViewSet은 Create / Retrieve / ... 등의 기능이 미리 탑재 되어 있음
 # 누구나 뷰를 수정 할 수 있는 등 로직이 다 사라졌음 -> permission을 이용
 # https://www.django-rest-framework.org/api-guide/permissions/
+# http://www.cdrf.co/3.9/rest_framework.viewsets/ModelViewSet.html
 class RoomViewSet(ModelViewSet):
 
     queryset = Room.objects.all()
@@ -43,6 +44,13 @@ class RoomViewSet(ModelViewSet):
         else:
             permission_classes = [IsOwner]
         return [permission() for permission in permission_classes]
+
+    # # http://www.cdrf.co/3.9/rest_framework.viewsets/ModelViewSet.html#get_serializer_context
+    # def get_serializer_context(self):
+    #     """
+    #     Extra context provided to the serializer class.
+    #     """
+    #     return {"request": self.request, "format": self.format_kwarg, "view": self}
 
 
 # function based view
