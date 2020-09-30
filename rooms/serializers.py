@@ -43,12 +43,17 @@ class WriteRoomSerializer(serializers.Serializer):
         return Room.objects.create(**validated_data)
 
     def validate(self, data):
-        check_in = data.get("check_in")
-        check_out = data.get("check_out")
-        if check_in == check_out:
-            raise serializers.ValidationError("Not enough time between changes")
-        else:
-            return data
+        # Create 할때만 적용 되게 할 수 있다.
+        if not self.instance:
+            check_in = data.get("check_in")
+            check_out = data.get("check_out")
+            print(check_in, check_out)
+            if check_in == check_out:
+                raise serializers.ValidationError("Not enough time between changes")
+        return data
+
+    def update(self, instance, validated_data):
+        print(instance, validated_data)
 
     # # Django에서의 clean과 비슷함
     # def validate_beds(self, beds):
