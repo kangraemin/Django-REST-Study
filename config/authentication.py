@@ -5,6 +5,11 @@ from rest_framework import authentication
 from rest_framework import exceptions
 from users.models import User
 
+# Nicco tip
+# https://www.django-rest-framework.org/api-guide/authentication/#apache-mod_wsgi-specific-configuration
+# EB를 사용하는 경우엔 반드시 위에꺼를 on해줘야함 ( 안한다면, 기본적으로 aws가 authorization의 헤더를 없애버린다. 무조건 ! )
+# WSGIPassAuthorization On your EB
+
 
 # Custom Authentication은 실패했을때 반드시 None을 리턴해야함 위 공식문서 참조
 class JWTAuthentication(authentication.BaseAuthentication):
