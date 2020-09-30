@@ -1,10 +1,11 @@
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import User
 from .serializers import RelatedUserSerializer, ReadUserSerializer, WriteUserSerializer
+from rooms.serializers import RoomSerializer
 
 
 class MeView(APIView):
@@ -35,3 +36,25 @@ def user_detail(self, pk):
         return Response(ReadUserSerializer(user).data)
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class FavsView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = RoomSerializer(user.favs.all(), many=True).data
+        return Response(serializer)
+
+    def put(self, request):
+        pass
+
+
+# 두개 이상 처리하는거면 Generic view 써라
+# @api_view(["GET", "POST"])
+# @permission_classes([IsAuthenticated])
+# def toggle_fav(request):
+#     room = request.data.get("room")
+#     print(room)
+#     return Response()

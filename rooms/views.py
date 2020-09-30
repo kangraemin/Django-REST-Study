@@ -8,7 +8,7 @@ from rest_framework.response import (
 )  # Django 의 Response와 다르다 ( Django는 http의 Response )
 from rest_framework import status
 from .models import Room
-from .serializers import ReadRoomSerializer, WriteRoomSerializer
+from .serializers import RoomSerializer
 
 
 # function based view
@@ -38,19 +38,19 @@ from .serializers import ReadRoomSerializer, WriteRoomSerializer
 class RoomsView(APIView):
     def get(self, request):
         rooms = Room.objects.all()
-        serializer = ReadRoomSerializer(rooms, many=True).data
+        serializer = RoomSerializer(rooms, many=True).data
         return Response(serializer)
 
     def post(self, request):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        serializer = WriteRoomSerializer(data=request.data)
+        serializer = RoomSerializer(data=request.data)
         # print(dir(serializer))
         # serializer.is_valid() -> Serializer 형태에 안맞는 데이터가 오면, False를 리턴한다. ( 값이 모자란다던지, ... )
         if serializer.is_valid():
             # 절대 절대 절대 절대 create 메소드를 바로 부르지 마라 !, save() 메소드를 콜하라 !!!
             room = serializer.save(user=request.user)
-            room_serializer = ReadRoomSerializer(room).data
+            room_serializer = RoomSerializer(room).data
             return Response(data=room_serializer, status=status.HTTP_200_OK)
         else:
             # print(serializer.errors)
@@ -79,7 +79,7 @@ class RoomView(APIView):
     def get(self, request, pk):
         room = self.get_room(pk)
         if room is not None:
-            serializer = ReadRoomSerializer(room).data
+            serializer = RoomSerializer(room).data
             return Response(serializer)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -96,11 +96,11 @@ class RoomView(APIView):
             # }
             # Put 을 할 때, 필요한 값을 모두 전송하는것이 아니라면 에러가 뜬다.
             # 하지만, partial = True로 해주면, 부분만 보내도 허용 해준다.
-            serializer = WriteRoomSerializer(room, data=request.data, partial=True)
+            serializer = RoomSerializer(room, data=request.data, partial=True)
             print(serializer.is_valid(), serializer.errors)
             if serializer.is_valid():
                 room = serializer.save()
-                return Response(ReadRoomSerializer(room).data)
+                return Response(RoomSerializer(room).data)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response()

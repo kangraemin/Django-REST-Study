@@ -13,25 +13,15 @@ from .models import Room
 #         # fields = ("pk", "name", "price", "bedrooms", "user")
 
 
-class ReadRoomSerializer(serializers.ModelSerializer):
+class RoomSerializer(serializers.ModelSerializer):
 
     user = RelatedUserSerializer()
 
     class Meta:
         model = Room
         exclude = ("modified",)
-        # fields = ("pk", "name", "price", "bedrooms", "user")
-
-
-# User를 create에 받을 수 없다면 ModelSerializer를 안쓰고, 그냥 Serializer를 쓴다. ( ModelSerializer 써도 되는데, 그냥 수동으로 해봄)
-class WriteRoomSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Room
-        exclude = (
-            "user",
-            "modified",
-            "created",
-        )
+        # Update 하거나 Create 할 때 User를 validate 하지 않기 위해, read_only로 지정 해줌
+        read_only_fields = ("user", "id", "created", "updated")
 
     def validate(self, data):
         # Create 할때만 적용 되게 할 수 있다.
@@ -46,6 +36,41 @@ class WriteRoomSerializer(serializers.ModelSerializer):
         if check_in == check_out:
             raise serializers.ValidationError("Not enough time between changes")
         return data
+
+
+# class ReadRoomSerializer(serializers.ModelSerializer):
+
+#     user = RelatedUserSerializer()
+
+#     class Meta:
+#         model = Room
+#         exclude = ("modified",)
+#         # fields = ("pk", "name", "price", "bedrooms", "user")
+
+
+# # User를 create에 받을 수 없다면 ModelSerializer를 안쓰고, 그냥 Serializer를 쓴다. ( ModelSerializer 써도 되는데, 그냥 수동으로 해봄)
+# class WriteRoomSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Room
+#         exclude = (
+#             "user",
+#             "modified",
+#             "created",
+#         )
+
+#     def validate(self, data):
+#         # Create 할때만 적용 되게 할 수 있다.
+#         if self.instance:
+#             # default값 부여 가능 ( python의 기능, NOT DRF)
+#             check_in = data.get("check_in", self.instance.check_in)
+#             check_out = data.get("check_out", self.instance.check_out)
+#         else:
+#             check_in = data.get("check_in")
+#             check_out = data.get("check_out")
+#             print(check_in, check_out)
+#         if check_in == check_out:
+#             raise serializers.ValidationError("Not enough time between changes")
+#         return data
 
 
 # # User를 create에 받을 수 없다면 ModelSerializer를 안쓰고, 그냥 Serializer를 쓴다. ( ModelSerializer 써도 되는데, 그냥 수동으로 해봄)
