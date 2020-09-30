@@ -3,6 +3,10 @@ from django.urls import path
 from . import views
 
 # UsingViewSet
+# Viewset create urls automatically we need to connect
+# But Search ? -> Extra actions
+# https://www.django-rest-framework.org/api-guide/viewsets/#marking-extra-actions-for-routing
+# detail이 True라면, -> /rooms/1 처럼 작동
 from rest_framework.routers import DefaultRouter
 
 app_name = "rooms"

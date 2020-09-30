@@ -18,6 +18,7 @@ from .permissions import IsOwner
 # Using ViewSet
 from rest_framework import permissions
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
 
 # ModelViewSet은 Create / Retrieve / ... 등의 기능이 미리 탑재 되어 있음
 # 누구나 뷰를 수정 할 수 있는 등 로직이 다 사라졌음 -> permission을 이용
@@ -51,6 +52,55 @@ class RoomViewSet(ModelViewSet):
     #     Extra context provided to the serializer class.
     #     """
     #     return {"request": self.request, "format": self.format_kwarg, "view": self}
+
+    # action의 이름이 url의 이름
+    # url_path 속성으로 url을 바꿀 수 도 있음
+    @action(detail=False)
+    def search(self, request):
+        # paginator = PageNumberPagination()
+        # paginator.page_size = 10
+        # https://docs.djangoproject.com/en/3.1/topics/db/queries/
+        max_price = request.GET.get("max_price", None)
+        min_price = request.GET.get("min_price", None)
+        beds = request.GET.get("beds", None)
+        bedrooms = request.GET.get("bedrooms", None)
+        bathrooms = request.GET.get("bathrooms", None)
+        lat = request.GET.get("lat", None)
+        lng = request.GET.get("lng", None)
+
+        filter_kwargs = {}
+        if max_price is not None:
+            filter_kwargs["price__lte"] = max_price
+        if min_price is not None:
+            filter_kwargs["price__gte"] = min_price
+        if beds is not None:
+            filter_kwargs["beds__gte"] = beds
+        if bedrooms is not None:
+            filter_kwargs["bedrooms__gte"] = bedrooms
+        if bathrooms is not None:
+            filter_kwargs["bathrooms__gte"] = bathrooms
+        if lat is not None and lng is not None:
+            filter_kwargs["lat__gte"] = float(lat) - 0.005
+            filter_kwargs["lat__lte"] = float(lat) + 0.005
+            filter_kwargs["lng__gte"] = float(lng) - 0.005
+            filter_kwargs["lng__lte"] = float(lng) + 0.005
+
+        # {'price__lte': '30', 'bathrooms__gte': '2'}
+        print(filter_kwargs)
+        # price__lte bathrooms__gte
+        print(*filter_kwargs)
+        # Print is not work but, price__lte='30', bathrooms__gte='2' 라는 형식으로 줌 따라서 이걸 써야함
+        # It (**) is called double expansion / unpacking
+        # print(**filter_kwargs)
+        # ModelViewSet에는 이미 있는 paginator가 있음, 그걸 사용
+        paginator = self.paginator
+        try:
+            rooms = Room.objects.filter(**filter_kwargs)
+        except ValueError:
+            rooms = Room.objects.all()
+        results = paginator.paginate_queryset(rooms, request)
+        serializer = RoomSerializer(results, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 
 # function based view
@@ -172,51 +222,51 @@ class RoomViewSet(ModelViewSet):
 #             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(["GET"])
-def room_search(request):
-    # paginator = PageNumberPagination()
-    # paginator.page_size = 10
-    # https://docs.djangoproject.com/en/3.1/topics/db/queries/
-    max_price = request.GET.get("max_price", None)
-    min_price = request.GET.get("min_price", None)
-    beds = request.GET.get("beds", None)
-    bedrooms = request.GET.get("bedrooms", None)
-    bathrooms = request.GET.get("bathrooms", None)
-    lat = request.GET.get("lat", None)
-    lng = request.GET.get("lng", None)
+# @api_view(["GET"])
+# def room_search(request):
+#     # paginator = PageNumberPagination()
+#     # paginator.page_size = 10
+#     # https://docs.djangoproject.com/en/3.1/topics/db/queries/
+#     max_price = request.GET.get("max_price", None)
+#     min_price = request.GET.get("min_price", None)
+#     beds = request.GET.get("beds", None)
+#     bedrooms = request.GET.get("bedrooms", None)
+#     bathrooms = request.GET.get("bathrooms", None)
+#     lat = request.GET.get("lat", None)
+#     lng = request.GET.get("lng", None)
 
-    filter_kwargs = {}
-    if max_price is not None:
-        filter_kwargs["price__lte"] = max_price
-    if min_price is not None:
-        filter_kwargs["price__gte"] = min_price
-    if beds is not None:
-        filter_kwargs["beds__gte"] = beds
-    if bedrooms is not None:
-        filter_kwargs["bedrooms__gte"] = bedrooms
-    if bathrooms is not None:
-        filter_kwargs["bathrooms__gte"] = bathrooms
-    if lat is not None and lng is not None:
-        filter_kwargs["lat__gte"] = float(lat) - 0.005
-        filter_kwargs["lat__lte"] = float(lat) + 0.005
-        filter_kwargs["lng__gte"] = float(lng) - 0.005
-        filter_kwargs["lng__lte"] = float(lng) + 0.005
+#     filter_kwargs = {}
+#     if max_price is not None:
+#         filter_kwargs["price__lte"] = max_price
+#     if min_price is not None:
+#         filter_kwargs["price__gte"] = min_price
+#     if beds is not None:
+#         filter_kwargs["beds__gte"] = beds
+#     if bedrooms is not None:
+#         filter_kwargs["bedrooms__gte"] = bedrooms
+#     if bathrooms is not None:
+#         filter_kwargs["bathrooms__gte"] = bathrooms
+#     if lat is not None and lng is not None:
+#         filter_kwargs["lat__gte"] = float(lat) - 0.005
+#         filter_kwargs["lat__lte"] = float(lat) + 0.005
+#         filter_kwargs["lng__gte"] = float(lng) - 0.005
+#         filter_kwargs["lng__lte"] = float(lng) + 0.005
 
-    # {'price__lte': '30', 'bathrooms__gte': '2'}
-    print(filter_kwargs)
-    # price__lte bathrooms__gte
-    print(*filter_kwargs)
-    # Print is not work but, price__lte='30', bathrooms__gte='2' 라는 형식으로 줌 따라서 이걸 써야함
-    # It (**) is called double expansion / unpacking
-    # print(**filter_kwargs)
-    paginator = OwnPagination()
-    try:
-        rooms = Room.objects.filter(**filter_kwargs)
-    except ValueError:
-        rooms = Room.objects.all()
-    results = paginator.paginate_queryset(rooms, request)
-    serializer = RoomSerializer(results, many=True)
-    return paginator.get_paginated_response(serializer.data)
+#     # {'price__lte': '30', 'bathrooms__gte': '2'}
+#     print(filter_kwargs)
+#     # price__lte bathrooms__gte
+#     print(*filter_kwargs)
+#     # Print is not work but, price__lte='30', bathrooms__gte='2' 라는 형식으로 줌 따라서 이걸 써야함
+#     # It (**) is called double expansion / unpacking
+#     # print(**filter_kwargs)
+#     paginator = OwnPagination()
+#     try:
+#         rooms = Room.objects.filter(**filter_kwargs)
+#     except ValueError:
+#         rooms = Room.objects.all()
+#     results = paginator.paginate_queryset(rooms, request)
+#     serializer = RoomSerializer(results, many=True)
+#     return paginator.get_paginated_response(serializer.data)
 
 
 # class ListRoomsView(APIView):
