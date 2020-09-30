@@ -2,7 +2,22 @@ from rest_framework import serializers
 from .models import User
 
 
-class UserSerializer(serializers.ModelSerializer):
+class RelatedUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "avatar",
+            "superhost",
+        )
+        # fields = ("username", "superhost")
+
+
+class ReadUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = (
@@ -16,4 +31,3 @@ class UserSerializer(serializers.ModelSerializer):
             "date_joined",
             "favs",
         )
-        # fields = ("username", "superhost")
