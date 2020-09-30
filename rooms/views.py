@@ -12,6 +12,7 @@ from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from .models import Room
 from .serializers import RoomSerializer
+from .permissions import IsOwner
 
 
 # Using ViewSet
@@ -38,8 +39,10 @@ class RoomViewSet(ModelViewSet):
         elif self.action == "create":
             permission_classes = [permissions.IsAuthenticated]
         # /room/1 ( DELTE, PUT ) -> Should be isOwner
+        # https://www.django-rest-framework.org/api-guide/viewsets/#introspecting-viewset-actions
         else:
-            permission_classes = []
+            permission_classes = [IsOwner]
+        return [permission() for permission in permission_classes]
 
 
 # function based view
