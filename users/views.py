@@ -5,8 +5,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .models import User
 from rooms.models import Room
-from .serializers import RelatedUserSerializer, ReadUserSerializer, WriteUserSerializer
+from .serializers import RelatedUserSerializer, UserSerializer
 from rooms.serializers import RoomSerializer
+
+
+class UsersView(APIView):
+    def post(self, request):
+        # print(request.data)
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            new_user = serializer.save()
+            return Response(UserSerializer(new_user).data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class MeView(APIView):
@@ -18,25 +29,16 @@ class MeView(APIView):
     def get(self, request):
         # if request.user.is_authenticated:
         #     return Response(ReadUserSerializer(request.user).data)
-        return Response(ReadUserSerializer(request.user).data)
+        return Response(UserSerializer(request.user).data)
 
     def put(self, request):
-        serializer = WriteUserSerializer(request.user, data=request.data, partial=True)
+        serializer = UserSerializer(request.user, data=request.data, partial=True)
         print(serializer.is_valid())
         if serializer.is_valid():
             serializer.save()
             return Response()
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(["GET"])
-def user_detail(self, pk):
-    try:
-        user = User.objects.get(pk=pk)
-        return Response(ReadUserSerializer(user).data)
-    except User.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 class FavsView(APIView):
@@ -63,6 +65,15 @@ class FavsView(APIView):
                 pass
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["GET"])
+def user_detail(self, pk):
+    try:
+        user = User.objects.get(pk=pk)
+        return Response(UserSerializer(user).data)
+    except User.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 # 두개 이상 처리하는거면 Generic view 써라
