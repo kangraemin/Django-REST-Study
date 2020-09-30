@@ -18,4 +18,5 @@ urlpatterns = [
     # path("", views.ListRoomsView.as_view()),
     # path("<int:pk>/", views.SeeRoomView.as_view()),
     path("<int:pk>/", views.RoomView.as_view()),
+    path("search/", views.room_search),
 ]

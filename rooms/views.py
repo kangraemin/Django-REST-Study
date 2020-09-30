@@ -1,4 +1,5 @@
 # from rest_framework.views import APIView
+# https://www.django-rest-framework.org/api-guide/pagination/
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.generics import ListAPIView
@@ -6,7 +7,9 @@ from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import (
     Response,
 )  # Django 의 Response와 다르다 ( Django는 http의 Response )
+from rest_framework.decorators import api_view
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from .models import Room
 from .serializers import RoomSerializer
 
@@ -34,12 +37,23 @@ from .serializers import RoomSerializer
 #             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class OwnPagination(PageNumberPagination):
+    page_size = 20
+
+
 # 위 function based view와 같음을 인지하라
 class RoomsView(APIView):
     def get(self, request):
+        # paginator = PageNumberPagination()
+        # paginator.page_size = 20
+        paginator = OwnPagination()
         rooms = Room.objects.all()
-        serializer = RoomSerializer(rooms, many=True).data
-        return Response(serializer)
+        # 모든 방을 가져온 query_set을 paginator에게 parsing 한다. ( parsing -> paginator가 page query argument를 찾아야 한다는 것 )
+        results = paginator.paginate_queryset(rooms, request)
+        serializer = RoomSerializer(results, many=True)
+        # return paginator.get_paginated_response(serializer.data)를 사용하면, page숫자를 센다던가, 이전 페이지, 다음 페이지 같은 결과값들을 얻을 수 있음
+        # return Response(serializer)
+        return paginator.get_paginated_response(serializer.data)
 
     def post(self, request):
         if not request.user.is_authenticated:
@@ -117,6 +131,17 @@ class RoomView(APIView):
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["GET"])
+def room_search(request):
+    # paginator = PageNumberPagination()
+    # paginator.page_size = 10
+    paginator = OwnPagination()
+    rooms = Room.objects.filter()
+    results = paginator.paginate_queryset(rooms, request)
+    serializer = RoomSerializer(results, many=True)
+    return paginator.get_paginated_response(serializer.data)
 
 
 # class ListRoomsView(APIView):
