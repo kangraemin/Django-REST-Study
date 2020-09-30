@@ -16,6 +16,14 @@ from .models import Room
 class RoomSerializer(serializers.ModelSerializer):
 
     user = RelatedUserSerializer()
+    # https://www.django-rest-framework.org/api-guide/fields/#serializermethodfield
+    # dynamic fields
+    am_i_sexy = serializers.SerializerMethodField()
+    # am_i_sexy = serializers.SerializerMethodField(method_nmae="potato")
+
+    # 누가 dynamic fields (serialize)를 요청 하는지를 알아야 한다.
+    # 그래야 제대로 된 처리가 가능함
+    # RoomsView가 부르는데, RoomsView에서 어떤 user가 보는지 알려줘야한다. ( request를 통해서 알 수 있다. )
 
     class Meta:
         model = Room
@@ -36,6 +44,24 @@ class RoomSerializer(serializers.ModelSerializer):
         if check_in == check_out:
             raise serializers.ValidationError("Not enough time between changes")
         return data
+
+    # naming must be get_fields_name
+    # or, add method name parameter to SerializerMethodField(method_name=원하는이름)
+    # obj -> serializer가 처리하고 있는 애 ( 지금은 room )
+    def get_am_i_sexy(self, obj):
+        # print(obj)
+        # context를 통해서 request를 받고, 이를 통해 user를 받는다.
+        request = self.context.get("request")
+        # print(request.user)
+        if request:
+            user = request.user
+            if user.is_authenticated:
+                return obj in user.favs.all()
+        return False
+
+    # def potato(self, obj):
+    #     print(obj)
+    #     return True
 
 
 # class ReadRoomSerializer(serializers.ModelSerializer):
