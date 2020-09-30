@@ -17,10 +17,16 @@ def rooms_view(request):
         serializer = ReadRoomSerializer(rooms, many=True).data
         return Response(serializer)
     elif request.method == "POST":
+        if not request.user.is_authenticated:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         serializer = WriteRoomSerializer(data=request.data)
+        # print(dir(serializer))
         # serializer.is_valid() -> Serializer 형태에 안맞는 데이터가 오면, False를 리턴한다. ( 값이 모자란다던지, ... )
         if serializer.is_valid():
-            return Response(status=status.HTTP_200_OK)
+            # 절대 절대 절대 절대 create 메소드를 바로 부르지 마라 !, save() 메소드를 콜하라 !!!
+            room = serializer.save(user=request.user)
+            room_serializer = ReadRoomSerializer(room).data
+            return Response(data=room_serializer, status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
