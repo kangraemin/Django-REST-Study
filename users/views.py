@@ -93,7 +93,7 @@ def login(request):
         # 그런데 누구도 건들지 않았다는 여부만 검사한다.
         # 아무도 못보게 만드는게 정보가 아니라, 누군가 건드렸는가 안건드렸는가가 중요한 정보이다.
         encoded_jwt = jwt.encode(
-            {"id": user.pk}, settings.SECRET_KEY, algorithm="HS256"
+            {"pk": user.pk}, settings.SECRET_KEY, algorithm="HS256"
         )
         return Response(data={"token": encoded_jwt})
     else:
