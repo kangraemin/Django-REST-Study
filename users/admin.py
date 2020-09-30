@@ -13,4 +13,4 @@ class UserAdmin(UserAdmin):
         ),
     )
 
-    list_display = UserAdmin.list_display + ("room_count",)
+    list_display = UserAdmin.list_display + ("room_count", "pk")
