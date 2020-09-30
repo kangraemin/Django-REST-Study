@@ -1,3 +1,6 @@
+import jwt
+from django.conf import settings  # Never Never import settings.py directly
+from django.contrib.auth import authenticate
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -74,6 +77,28 @@ def user_detail(self, pk):
         return Response(UserSerializer(user).data)
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(["POST"])
+def login(request):
+    username = request.data.get("username")
+    password = request.data.get("password")
+    if not username or not password:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        # You never ever ever ever put secret information to JWT
+        # Password, email, username ... 절대 안됨 ! ID 같은 식별자 정도만 !!
+        # 토큰은 누구나 볼 수 있다. 그런데 서버는 토큰의 변경 사항을 본다. 토큰안에 어떤 정보가 있는지 상관 안쓴다.
+        # 그런데 누구도 건들지 않았다는 여부만 검사한다.
+        # 아무도 못보게 만드는게 정보가 아니라, 누군가 건드렸는가 안건드렸는가가 중요한 정보이다.
+        encoded_jwt = jwt.encode(
+            {"id": user.pk}, settings.SECRET_KEY, algorithm="HS256"
+        )
+        return Response(data={"token": encoded_jwt})
+    else:
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    # print(user)
 
 
 # 두개 이상 처리하는거면 Generic view 써라
