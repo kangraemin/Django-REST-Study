@@ -31,3 +31,20 @@ class ReadUserSerializer(serializers.ModelSerializer):
             "date_joined",
             "favs",
         )
+
+
+# Serializer는 왠만하면 상속해서 쓰는것이 편하다.
+# View는 그렇지 않은 경우도 많다.
+class WriteUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+        )
+
+    def validate_first_name(self, value):
+        print(value)
+        return value.upper()
